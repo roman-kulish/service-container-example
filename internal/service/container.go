@@ -54,9 +54,9 @@ func (h *ShutdownHandler) Shutdown() {
 	h.mu.Unlock()
 }
 
-// BuildContainer executes given service providers and returns an error,
+// Wire executes given service providers and returns an error,
 // if any of the providers fails.
-func BuildContainer(cnt Container, sp ...Provider) error {
+func Wire(cnt Container, sp ...Provider) error {
 	for _, fn := range sp {
 		if fn == nil {
 			cnt.Shutdown()

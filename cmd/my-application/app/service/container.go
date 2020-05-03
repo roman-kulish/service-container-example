@@ -40,7 +40,7 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 		service.CustomServiceFactory(cnt, cfg.Bucket),
 		MyServiceFactory(cnt, cfg),
 	}
-	if err := service.BuildContainer(cnt, sp...); err != nil {
+	if err := service.Wire(cnt, sp...); err != nil {
 		return nil, err
 	}
 	return cnt, nil
