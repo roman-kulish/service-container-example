@@ -15,7 +15,9 @@ import (
 
 // MongoDBAwareContainer represents a container, which provides MongoDB client.
 type MongoDBAwareContainer interface {
-	SetMongoDB(*mongo.Client, ShutdownFunc)
+	Container
+
+	SetMongoDB(*mongo.Client)
 	MongoDB() *mongo.Client
 }
 
@@ -26,7 +28,8 @@ func MongoDB(cnt MongoDBAwareContainer, opts *options.ClientOptions) Provider {
 		if err != nil {
 			return fmt.Errorf("mongodb service: %w", err)
 		}
-		cnt.SetMongoDB(client, func() {
+		cnt.SetMongoDB(client)
+		cnt.RegisterOnShutdown(func() {
 			_ = client.Disconnect(context.Background())
 		})
 		return nil
@@ -43,7 +46,7 @@ type CloudStorageAwareContainer interface {
 // CloudStorage returns pre-configured Google Cloud Storage service provider.
 func CloudStorage(cnt CloudStorageAwareContainer, ctx context.Context, opts ...option.ClientOption) Provider {
 	return func() error {
-		client, err:= storage.NewClient(ctx, opts...)
+		client, err := storage.NewClient(ctx, opts...)
 		if err != nil {
 			return fmt.Errorf("cloud storage service: %w", err)
 		}
@@ -54,14 +57,16 @@ func CloudStorage(cnt CloudStorageAwareContainer, ctx context.Context, opts ...o
 
 // LoggerAwareContainer represents a container, which provides logger.
 type LoggerAwareContainer interface {
-	SetLogger(*zap.Logger, ShutdownFunc)
+	Container
+
+	SetLogger(*zap.Logger)
 	Logger() *zap.Logger
 }
 
 // Logger returns pre-configured Logger service provider.
 func Logger(cnt LoggerAwareContainer, opts ...LoggerOption) Provider {
 	cfg := newLoggerConfig()
-	for _, fn:= range opts {
+	for _, fn := range opts {
 		fn.apply(cfg)
 	}
 	if cfg.out == nil {
@@ -98,7 +103,8 @@ func Logger(cnt LoggerAwareContainer, opts ...LoggerOption) Provider {
 		zapCore := zapcore.NewCore(encoder, sync, cfg.level)
 		logger := zap.New(zapCore, cfg.opts...)
 
-		cnt.SetLogger(logger, func() {
+		cnt.SetLogger(logger)
+		cnt.RegisterOnShutdown(func() {
 			_ = logger.Sync()
 		})
 		return nil

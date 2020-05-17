@@ -4,14 +4,11 @@ import (
 	"sync"
 )
 
-// ShutdownFunc represents a function called on a container Shutdown().
-type ShutdownFunc func()
-
 // Container represents a service container.
 type Container interface {
 	// RegisterOnShutdown allows to register a function, which is executed
 	// when container Shutdown() is called.
-	RegisterOnShutdown(ShutdownFunc)
+	RegisterOnShutdown(func())
 
 	// Shutdown allows to gracefully shutdown container services.
 	//
@@ -35,10 +32,10 @@ type Provider func() error
 // embedded object with specific container implementation.
 type ShutdownHandler struct {
 	mu         sync.Mutex
-	onShutdown []ShutdownFunc
+	onShutdown []func()
 }
 
-func (h *ShutdownHandler) RegisterOnShutdown(fn ShutdownFunc) {
+func (h *ShutdownHandler) RegisterOnShutdown(fn func()) {
 	h.mu.Lock()
 	h.onShutdown = append(h.onShutdown, fn)
 	h.mu.Unlock()

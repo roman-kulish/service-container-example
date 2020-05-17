@@ -15,6 +15,7 @@ import (
 	"github.com/roman-kulish/service-container-example/internal/service"
 )
 
+var _ service.Container = (*Container)(nil)
 var _ service.MongoDBAwareContainer = (*Container)(nil)
 var _ service.CloudStorageAwareContainer = (*Container)(nil)
 var _ service.LoggerAwareContainer = (*Container)(nil)
@@ -50,9 +51,8 @@ func (c *Container) Config() *config.Config {
 	return c.cfg
 }
 
-func (c *Container) SetMongoDB(client *mongo.Client, fn service.ShutdownFunc) {
+func (c *Container) SetMongoDB(client *mongo.Client) {
 	c.mgo = client
-	c.RegisterOnShutdown(fn)
 }
 
 func (c *Container) MongoDB() *mongo.Client {
@@ -67,9 +67,8 @@ func (c *Container) CloudStorage() *storage.Client {
 	return c.gcs
 }
 
-func (c *Container) SetLogger(log *zap.Logger, fn service.ShutdownFunc) {
+func (c *Container) SetLogger(log *zap.Logger) {
 	c.log = log
-	c.RegisterOnShutdown(fn)
 }
 
 func (c *Container) Logger() *zap.Logger {
