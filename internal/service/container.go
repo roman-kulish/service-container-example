@@ -36,6 +36,10 @@ type ShutdownHandler struct {
 }
 
 func (h *ShutdownHandler) RegisterOnShutdown(fn func()) {
+	if fn == nil {
+		// using it wrong, fail fast at services bootstrapping.
+		panic("shutdown function cannot be nil")
+	}
 	h.mu.Lock()
 	h.onShutdown = append(h.onShutdown, fn)
 	h.mu.Unlock()
